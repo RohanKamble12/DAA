@@ -1,0 +1,61 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+// Item structure to store value and weight
+struct Item
+{
+  int value, weight;
+  Item(int v, int w) : value(v), weight(w) {}
+};
+
+// Comparator function to sort items by value-to-weight ratio
+bool compare(Item a, Item b)
+{
+  double r1 = (double)a.value / a.weight;
+  double r2 = (double)b.value / b.weight;
+  return r1 > r2;
+}
+
+// Function to solve the fractional Knapsack problem
+double fractionalKnapsack(int W, vector<Item> &arr)
+{
+  // Sort items by descending value-to-weight ratio
+  sort(arr.begin(), arr.end(), compare);
+
+  int curWeight = 0;       // Current weight in knapsack
+  double finalValue = 0.0; // Resulting maximum value
+
+  for (const auto &item : arr)
+  {
+    if (curWeight + item.weight <= W)
+    {
+      // If item can be completely added, add it
+      curWeight += item.weight;
+      finalValue += item.value;
+    }
+    else
+    {
+      // If item can't be completely added, add fractional part
+      int remain = W - curWeight;
+      finalValue += (double)item.value / item.weight * remain;
+      break;
+    }
+  }
+
+  return finalValue;
+}
+
+int main()
+{
+  int n = 3;  // Number of items
+  int W = 50; // Maximum weight of knapsack
+  vector<Item> arr = {Item(100, 20), Item(60, 10), Item(120, 30)};
+
+  double maxValue = fractionalKnapsack(W, arr);
+  cout << "The maximum value is " << maxValue << endl;
+
+  return 0;
+}

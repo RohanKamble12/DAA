@@ -1,0 +1,131 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <algorithm>
+
+using namespace std;
+
+// Item structure to store weight and value
+struct Item
+{
+  float weight;
+  int value;
+  Item(float w, int v) : weight(w), value(v) {}
+};
+
+// Node structure to store information for branch and bound
+struct Node
+{
+  int level;
+  int profit;
+  float weight;
+  float bound; // Use float for the bound as it may be fractional
+  Node(int l, int p, float w) : level(l), profit(p), weight(w), bound(0) {}
+};
+
+// Comparator function to sort items by value-to-weight ratio in descending order
+bool compare(Item a, Item b)
+{
+  return (double)a.value / a.weight > (double)b.value / a.weight;
+}
+
+// Function to calculate the bound of a node
+float bound(Node u, int n, int W, vector<Item> &arr)
+{
+  // If the weight of the current node exceeds the capacity, return 0
+  if (u.weight >= W)
+    return 0;
+
+  float profitBound = u.profit;
+  int j = u.level + 1;
+  float totalWeight = u.weight;
+
+  // Add items greedily until the knapsack is full or there are no more items
+  while (j < n && totalWeight + arr[j].weight <= W)
+  {
+    totalWeight += arr[j].weight;
+    profitBound += arr[j].value;
+    j++;
+  }
+
+  // Take the fractional part of the last item if needed
+  if (j < n)
+    profitBound += (W - totalWeight) * arr[j].value / arr[j].weight;
+
+  return profitBound;
+}
+
+// Comparator for the priority queue, to sort by the bound value in descending order
+struct compareNode
+{
+  bool operator()(Node const &n1, Node const &n2)
+  {
+    return n1.bound < n2.bound; // Higher bound should have higher priority
+  }
+};
+
+// Function to solve the 0-1 Knapsack problem using branch and bound
+int knapsack(int W, vector<Item> &arr, int n)
+{
+  // Sort items by descending value-to-weight ratio
+  sort(arr.begin(), arr.end(), compare);
+
+  // Priority queue to store nodes, ordered by bound in descending order
+  priority_queue<Node, vector<Node>, compareNode> pq;
+
+  // Start with the first node (level -1, profit 0, weight 0)
+  Node u(-1, 0, 0);
+  pq.push(u);
+
+  int maxProfit = 0;
+
+  while (!pq.empty())
+  {
+    u = pq.top();
+    pq.pop();
+
+    // If we reach the last level, no further processing
+    if (u.level == n - 1)
+      continue;
+
+    // Create a new node for the next level, taking the current item
+    Node v(u.level + 1, u.profit, u.weight);
+
+    // Taking the current item
+    v.weight += arr[v.level].weight;
+    v.profit += arr[v.level].value;
+
+    // If the new node is valid, check the profit
+    if (v.weight <= W && v.profit > maxProfit)
+      maxProfit = v.profit;
+
+    // Calculate the bound for the new node
+    v.bound = bound(v, n, W, arr);
+
+    // If bound is greater than maxProfit, push this node to the queue
+    if (v.bound > maxProfit)
+      pq.push(v);
+
+    // Create a new node for the next level, not taking the current item
+    v = Node(u.level + 1, u.profit, u.weight);
+    v.bound = bound(v, n, W, arr);
+
+    // If bound is greater than maxProfit, push this node to the queue
+    if (v.bound > maxProfit)
+      pq.push(v);
+  }
+
+  return maxProfit;
+}
+
+int main()
+{
+  int W = 10; // Maximum weight of knapsack
+  vector<Item> arr = {Item(2, 40), Item(3.14f, 50), Item(1.98f, 100), Item(5, 95), Item(3, 30)};
+  int n = arr.size();
+
+  int maxProfit = knapsack(W, arr, n);
+  cout << "Maximum possible profit = " << maxProfit << endl;
+
+  return 0;
+}

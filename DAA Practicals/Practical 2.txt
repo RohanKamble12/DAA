@@ -1,0 +1,93 @@
+#include <iostream>
+#include <queue>
+#include <vector>
+
+using namespace std;
+
+// Huffman Node structure
+struct HuffmanNode
+{
+  char c;
+  int data;
+  HuffmanNode *left;
+  HuffmanNode *right;
+
+  // Constructor for a HuffmanNode
+  HuffmanNode(char character, int frequency)
+  {
+    c = character;
+    data = frequency;
+    left = right = nullptr;
+  }
+};
+
+// Comparator to order nodes in the priority queue
+struct Compare
+{
+  bool operator()(HuffmanNode *l, HuffmanNode *r)
+  {
+    return l->data > r->data; // Min-heap based on data (frequency)
+  }
+};
+
+// Recursive function to print Huffman Codes
+void printCode(HuffmanNode *root, string s)
+{
+  if (!root)
+    return;
+
+  // Leaf node with character
+  if (root->left == nullptr && root->right == nullptr && isalpha(root->c))
+  {
+    cout << root->c << ": " << s << endl;
+    return;
+  }
+
+  // Traverse left subtree with added "0" to path
+  printCode(root->left, s + "0");
+
+  // Traverse right subtree with added "1" to path
+  printCode(root->right, s + "1");
+}
+
+int main()
+{
+  int n = 6; // Number of characters
+  char charArray[] = {'a', 'b', 'c', 'd', 'e', 'f'};
+  int charfreq[] = {5, 9, 12, 13, 16, 45};
+
+  // Priority queue to store live nodes of Huffman tree
+  priority_queue<HuffmanNode *, vector<HuffmanNode *>, Compare> q;
+
+  // Create leaf nodes for each character and add to priority queue
+  for (int i = 0; i < n; i++)
+  {
+    q.push(new HuffmanNode(charArray[i], charfreq[i]));
+  }
+
+  // Iterate until the size of the queue becomes 1
+  while (q.size() > 1)
+  {
+    // Extract the two nodes of minimum frequency
+    HuffmanNode *left = q.top();
+    q.pop();
+    HuffmanNode *right = q.top();
+    q.pop();
+
+    // Create a new internal node with frequency equal to the sum of the two nodes' frequencies
+    HuffmanNode *f = new HuffmanNode('-', left->data + right->data);
+    f->left = left;
+    f->right = right;
+
+    // Add the new node to the priority queue
+    q.push(f);
+  }
+
+  // The remaining node is the root of the Huffman Tree
+  HuffmanNode *root = q.top();
+
+  // Print the Huffman Codes
+  printCode(root, "");
+
+  return 0;
+}

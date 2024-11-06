@@ -1,0 +1,101 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class NQueenProblem
+{
+public:
+  const int N = 4;
+
+  // Function to print the solution board
+  void printSolution(vector<vector<int>> &board)
+  {
+    for (int i = 0; i < N; i++)
+    {
+      for (int j = 0; j < N; j++)
+      {
+        if (board[i][j] == 1)
+          cout << "Q ";
+        else
+          cout << ". ";
+      }
+      cout << endl;
+    }
+  }
+
+  // Function to check if a queen can be placed safely at board[row][col]
+  bool isSafe(vector<vector<int>> &board, int row, int col)
+  {
+    int i, j;
+
+    // Check this row on left side
+    for (i = 0; i < col; i++)
+      if (board[row][i] == 1)
+        return false;
+
+    // Check upper diagonal on left side
+    for (i = row, j = col; i >= 0 && j >= 0; i--, j--)
+      if (board[i][j] == 1)
+        return false;
+
+    // Check lower diagonal on left side
+    for (i = row, j = col; j >= 0 && i < N; i++, j--)
+      if (board[i][j] == 1)
+        return false;
+
+    return true;
+  }
+
+  // Backtracking function to solve the N-Queens problem
+  bool solveNQUtil(vector<vector<int>> &board, int col)
+  {
+    // If all queens are placed, return true
+    if (col >= N)
+      return true;
+
+    // Try placing the queen in all rows one by one
+    for (int i = 0; i < N; i++)
+    {
+      // Check if it is safe to place the queen at board[i][col]
+      if (isSafe(board, i, col))
+      {
+        board[i][col] = 1; // Place queen
+
+        // Recur to place the next queen
+        if (solveNQUtil(board, col + 1))
+          return true;
+
+        // If placing queen in board[i][col] doesn't lead to a solution, backtrack
+        board[i][col] = 0; // Backtrack
+      }
+    }
+
+    // If the queen cannot be placed in any row in this column col, return false
+    return false;
+  }
+
+  // Function to solve the N-Queens problem
+  bool solveNQ()
+  {
+    // Initialize the board with 0 (empty spaces)
+    vector<vector<int>> board(N, vector<int>(N, 0));
+
+    // Try to solve the N-Queens problem starting from the first column
+    if (solveNQUtil(board, 0) == false)
+    {
+      cout << "Solution does not exist" << endl;
+      return false;
+    }
+
+    // Print the solution board
+    printSolution(board);
+    return true;
+  }
+};
+
+int main()
+{
+  NQueenProblem Queen;
+  Queen.solveNQ();
+  return 0;
+}
